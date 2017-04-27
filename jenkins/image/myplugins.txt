@@ -10,6 +10,8 @@ credentials-binding
 delivery-pipeline-plugin 
 docker-build-publish 
 docker-commons 
+docker-plugin
+docker-traceability
 docker-workflow 
 durable-task 
 git 
