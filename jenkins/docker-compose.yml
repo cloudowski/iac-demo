@@ -1,0 +1,9 @@
+jenkins:
+  #image: 'cloudowski/jenkins:1.1'
+  build: ./image/
+  #restart: always
+  hostname: 'jenkins.localhost'
+  ports:
+    - '8888:8080'
+  environment:
+    JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
