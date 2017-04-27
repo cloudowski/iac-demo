@@ -1,4 +1,5 @@
 ant 
+aws-credentials
 blueocean
 build-pipeline-plugin 
 build-timeout 
@@ -9,6 +10,8 @@ credentials-binding
 delivery-pipeline-plugin 
 docker-build-publish 
 docker-commons 
+docker-plugin
+docker-traceability
 docker-workflow 
 durable-task 
 git 
@@ -22,6 +25,7 @@ junit
 mailer 
 pam-auth 
 parameterized-trigger 
+pipeline-aws
 pipeline-build-step 
 pipeline-input-step 
 pipeline-rest-api 

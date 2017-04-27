@@ -1,0 +1,7 @@
+setuptools==11.3
+markupsafe
+boto
+ansible==2.2.2.0
+ansible-lint==3.4.11
+pep8
+yamllint

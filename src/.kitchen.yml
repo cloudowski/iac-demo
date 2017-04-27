@@ -1,0 +1,31 @@
+---
+driver:
+  name: docker
+driver_config:
+  use_sudo: false
+  privileged: true
+
+provisioner:
+  hosts: localhost
+  name: ansible_playbook
+  require_chef_for_busser: false
+  require_ruby_for_busser: true
+  ansible_verbosity: 2
+  ansible_verbose: true
+
+platforms:
+  - name: ubuntu-16.04
+
+verifier:
+  name: serverspec
+  plugin:
+  - Ansiblespec
+
+suites:
+  - name: sample
+    run_list:
+    attributes:
+    verifier:
+      patterns:
+      - roles/sample/spec/common_spec.rb
+

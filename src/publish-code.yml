@@ -1,0 +1,17 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Create s3 bucket for code
+    s3: bucket="{{ iac_code_bucket }}" mode=create permission=private region="{{ item }}"
+    with_items:
+      - us-east-1
+
+  - name: Upload code to s3 bucket ('"{{ iac_version }}"')
+    s3: bucket="{{ iac_code_bucket }}" mode=put object="{{ version }}/{{ file | basename }}" src="{{ file }}"
+
+  - name: Upload code to s3 bucket ('latest' version)
+    s3: bucket="{{ iac_code_bucket }}" mode=put object="latest/{{ file | basename }}" src="{{ file }}"
+
+  - name: Note to developer
+    debug: msg="Uploaded {{ version }}/{{ file | basename }} into {{ iac_code_bucket }} S3 bucket"

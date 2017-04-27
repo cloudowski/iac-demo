@@ -1,0 +1,9 @@
+Gemfile.lock
+.kitchen/
+.kitchen.local.yml
+.idea/
+bundle/
+.bundle/
+*.swp
+*.retry
+*.pyc

@@ -1,0 +1,6 @@
+---
+- hosts: localhost
+  connection: local
+  tasks:
+  - name: Deplying version {{ iac_version }}
+    debug: msg="Uploaded {{ iac_version }}"
