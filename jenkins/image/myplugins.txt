@@ -1,4 +1,5 @@
 ant 
+aws-bucket-credentials
 blueocean
 build-pipeline-plugin 
 build-timeout 
@@ -22,6 +23,7 @@ junit
 mailer 
 pam-auth 
 parameterized-trigger 
+pipeline-aws
 pipeline-build-step 
 pipeline-input-step 
 pipeline-rest-api 
