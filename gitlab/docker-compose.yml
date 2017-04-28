@@ -1,0 +1,19 @@
+version: '2.1'
+
+services:
+  web:
+    image: 'gitlab/gitlab-ce:9.1.1-ce.0'
+  #  restart: always
+    hostname: 'gitlab.localhost'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://127.0.0.1:9090'
+        gitlab_rails['gitlab_shell_ssh_port'] = 2224
+    ports:
+  #    - '8080:80'
+      - '9090:9090'
+      - '2224:22'
+#    volumes:
+#      - '/git/config:/etc/gitlab'
+#      - '/git/logs:/var/log/gitlab'
+#      - '/git/data:/var/opt/gitlab'
