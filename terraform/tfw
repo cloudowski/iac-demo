@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+d=/tmp/t
+
+URL=https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_darwin_amd64.zip
+ZIPFILE=${URL##*/}
+
+[ -d $d ] || mkdir -p $d
+cd $d
+if ! [ -x terraform ];then
+	curl -O $URL
+        unzip ${URL##*/}
+fi
+rm  -f $ZIPFILE
+
+exec /tmp/t/terraform
