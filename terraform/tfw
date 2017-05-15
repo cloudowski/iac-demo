@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 
-d=/tmp/t
+set -euo pipefail
+
+BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 URL=https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_darwin_amd64.zip
 ZIPFILE=${URL##*/}
 
-[ -d $d ] || mkdir -p $d
-cd $d
+cd $BASE
 if ! [ -x terraform ];then
+	echo "Downloading terraform"
 	curl -O $URL
         unzip ${URL##*/}
+	rm  -f $ZIPFILE
 fi
-rm  -f $ZIPFILE
 
-exec /tmp/t/terraform
+exec $BASE/terraform
