@@ -4,15 +4,20 @@ set -euo pipefail
 
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-URL=https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_darwin_amd64.zip
+case $(uname) in
+    Darwin) osfamily=darwin ;;
+    Linux) osfamily=darwin ;;
+    *) echo "Unsupported system" >&2; exit 1 ;;
+esac
+
+URL=https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_${osfamily}_amd64.zip
 ZIPFILE=${URL##*/}
 
-cd $BASE
-if ! [ -x terraform ];then
+if ! [ -x $BASE/terraform ];then
 	echo "Downloading terraform"
-	curl -O $URL
-        unzip ${URL##*/}
+	curl -O$BASE/terraform $URL
+    unzip ${URL##*/}
 	rm  -f $ZIPFILE
 fi
 
-exec $BASE/terraform
+exec $BASE/terraform $@

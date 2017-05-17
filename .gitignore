@@ -91,3 +91,6 @@ ENV/
 # terraform
 terraform/terraform
 terraform/terraform*zip
+terraform/*.tfvars
+terraform/*.tfstate*
+.terraform
