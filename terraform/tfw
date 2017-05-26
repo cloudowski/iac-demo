@@ -3,6 +3,7 @@
 set -euo pipefail
 
 BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TFVERSION="$(cat $BASE/terraform.version)"
 
 case $(uname) in
     Darwin) osfamily=darwin ;;
@@ -10,13 +11,21 @@ case $(uname) in
     *) echo "Unsupported system" >&2; exit 1 ;;
 esac
 
-URL=https://releases.hashicorp.com/terraform/0.9.5/terraform_0.9.5_${osfamily}_amd64.zip
-ZIPFILE=${URL##*/}
+URL=https://releases.hashicorp.com/terraform/${TFVERSION}/terraform_${TFVERSION}_${osfamily}_amd64.zip
+ZIPFILE=$BASE/${URL##*/}
+
+if [ -x $BASE/terraform ];then
+    CURVER=$($BASE/terraform version|sed -ne 's/^Terraform v\(.*\)/\1/p')
+    if ! [ $CURVER = $TFVERSION ];then 
+        echo "Updating terraform because of version mismatch - current=$CURVER, desired=$TFVERSION"
+        rm -f $BASE/terraform
+    fi
+fi
 
 if ! [ -x $BASE/terraform ];then
-	echo "Downloading terraform"
-	curl -O$BASE/terraform $URL
-    unzip ${URL##*/}
+	echo "Downloading terraform $TFVERSION"
+	curl -o$ZIPFILE $URL
+    unzip $ZIPFILE -d $BASE
 	rm  -f $ZIPFILE
 fi
 
