@@ -1,6 +1,8 @@
 # Infrastructure as Code Demo
 This repo contains resources used to provide demo for Infrastructure as Code concept using **Jenkins pipelines**.
 
+![images/pipeline1.png](!images/pipeline1.png)
+
 # Usage
 
   * First launch jenkins using custom image (with required plugins)
