@@ -1,0 +1,97 @@
+def pullRequest = false
+def exitCode = -1
+def apply = false
+
+
+ansiColor('xterm') {
+  node {
+    // Set github status that the images could be built successfully
+    step([$class: 'GitHubSetCommitStatusBuilder'])
+    checkout scm
+    // we don't release or ask for user input on pull requests
+    pullRequest = env.BRANCH_NAME != 'master'
+
+    stage('plan') {
+      downloadTerraform()
+      env.PATH = "${env.PATH}:${env.WORKSPACE}"
+      withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+        dir('tf/') {
+          sh """
+            # terraform remote config -backend=S3 -backend-config="bucket=mybucket" -backend-config="key=state.tfstate" -backend-config="region=eu-west-1"
+            terraform init
+            terraform get -update=true
+            """
+          sh """
+            set +e; terraform plan -out=plan.plan -detailed-exitcode; echo \$? > status
+          """
+          exitCode = readFile('status').trim()
+          }
+        }
+        echo "Terraform Plan Exit Code: ${exitCode}"
+        if (exitCode == "0") {
+             currentBuild.result = 'SUCCESS'
+        }
+        if (exitCode == "1") {
+             currentBuild.result = 'FAILURE'
+        }
+    }
+
+    stage('show') {
+      dir('tf/') {
+        sh "terraform show plan.plan"
+        archiveArtifacts 'plan.plan'
+        stash includes: 'plan.plan', name: 'plans'
+      }
+    }
+  }
+}
+// pull requests only runs a plan
+//if(pullRequest){
+//  return
+//}
+
+// Do not allocate a node as this is a blocking request and should be run on light weight executor
+def userInputEnv = null
+
+
+if (exitCode == "2") {
+  timeout(time: 1, unit: 'HOURS') {
+    try {
+       input message: 'Apply Plan?', ok: 'Apply'
+       apply = true
+    } catch (err) {
+       apply = false
+       currentBuild.result = 'UNSTABLE'
+    }
+  }
+}
+
+if (apply) {
+  ansiColor('xterm') {
+    node {
+      unstash name: 'plans'
+
+      stage('apply'){
+        downloadTerraform()
+        env.PATH = "${env.PATH}:${env.WORKSPACE}"
+        withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+          dir('tf/') {
+            sh """
+              # terraform remote config -backend=S3 -backend-config="bucket=mybucket" -backend-config="key=state.tfstate" -backend-config="region=eu-west-1"
+              terraform apply plan.plan
+            """
+          }
+        }
+      }
+    }
+  }
+}
+
+def downloadTerraform(){
+
+  if (!fileExists('terraform')) {
+    sh "curl -o  terraform_0.10.5_linux_amd64.zip https://releases.hashicorp.com/terraform/0.10.5/terraform_0.10.5_linux_amd64.zip && unzip -o terraform_0.10.5_linux_amd64.zip && chmod 777 terraform"
+  } else {
+    println("terraform already downloaded")
+  }
+}
