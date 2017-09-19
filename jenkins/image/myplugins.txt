@@ -1,5 +1,6 @@
 ant 
 aws-credentials
+ansicolor
 blueocean
 build-pipeline-plugin 
 build-timeout 
