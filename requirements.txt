@@ -1,0 +1,5 @@
+boto
+ansible==2.4
+
+ansible-lint==3.4.11
+pep8

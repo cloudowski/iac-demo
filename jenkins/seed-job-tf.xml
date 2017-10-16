@@ -20,7 +20,7 @@
       <submoduleCfg class="list"/>
       <extensions/>
     </scm>
-    <scriptPath>tf/Jenkinsfile</scriptPath>
+    <scriptPath>Jenkinsfile</scriptPath>
     <lightweight>true</lightweight>
   </definition>
   <triggers/>

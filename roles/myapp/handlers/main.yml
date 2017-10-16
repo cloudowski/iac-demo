@@ -1,0 +1,6 @@
+# skip reload and restart for test-kitchen tests because of systemctl support when using docker
+- name: "Restart nginx"
+  service: name=nginx enabled=yes state=restarted
+
+- name: "Reload nginx"
+  service: name=nginx state=reloaded

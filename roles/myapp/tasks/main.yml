@@ -1,0 +1,19 @@
+- name: Install nginx with php
+  apt: name="{{ item }}" state=present update_cache=yes
+  with_items:
+    - php-fpm
+    - php-mysql
+    - php-mbstring
+    - php-xml
+    - php-curl
+    - nginx
+      
+- name: Enable nginx service
+  service: name=nginx state=started enabled=true
+
+- name: Install netstat
+  apt: name=net-tools state=present
+
+- name: Template nginx config
+  template: src=templates/index.html.j2 dest=/var/www/html/index.html
+  notify: "Restart nginx"
