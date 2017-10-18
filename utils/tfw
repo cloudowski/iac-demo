@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+BASE="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+case $(uname) in
+    Darwin) osfamily=darwin ;;
+    Linux) osfamily=linux ;;
+    *) echo "Unsupported system" >&2; exit 1 ;;
+esac
+
+if [ "${TFVERSION:-x}" = "x" ];then
+    TFVERSION="$(cat $BASE/.terraform.version)"
+fi
+
+URL=https://releases.hashicorp.com/terraform/${TFVERSION}/terraform_${TFVERSION}_${osfamily}_amd64.zip
+ZIPFILE=$BASE/${URL##*/}
+
+if [ -x $BASE/terraform ];then
+    CURVER=$($BASE/terraform version|sed -ne 's/^Terraform v\(.*\)/\1/p')
+    if ! [ $CURVER = $TFVERSION ];then 
+        echo "Updating terraform because of version mismatch - current=$CURVER, desired=$TFVERSION"
+        rm -f $BASE/terraform
+    fi
+fi
+
+if ! [ -x $BASE/terraform ];then
+	echo "Downloading terraform $TFVERSION"
+	curl -o$ZIPFILE $URL
+    unzip $ZIPFILE -d $BASE
+	rm  -f $ZIPFILE
+fi
+
+exec $BASE/terraform $@

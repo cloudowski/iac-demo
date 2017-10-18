@@ -11,7 +11,7 @@ credentials-binding
 delivery-pipeline-plugin 
 docker-build-publish 
 docker-commons 
-docker-plugin
+docker-plugin:1.0.0
 docker-traceability
 docker-workflow 
 durable-task 

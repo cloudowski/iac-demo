@@ -4,10 +4,15 @@ services:
   jenkins:
     #image: 'cloudowski/jenkins:1.1'
     build: ./image/
+    privileged: true
     hostname: 'jenkins.localhost'
     ports:
       - '8888:8080'
     environment:
-      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false"
-#    volumes:
-#      - /var/run/docker.sock:/var/run/docker.sock
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Dpermissive-script-security.enabled=true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - jenkins:/var/jenkins_home
+
+volumes:
+    jenkins:

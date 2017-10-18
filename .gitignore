@@ -3,12 +3,29 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# terraform
+**/.terraform/
+*.tfstate
+*.tfstate.backup
+*.auto.tfvars
+
+# test-kitchen
+.kitchen/
+
+utils/terraform
+
 # C extensions
 *.so
+
+# ruby bundler
+.bundle/
+bundle/
+Gemfile.lock
 
 # Distribution / packaging
 .Python
 env/
+venv/
 build/
 develop-eggs/
 dist/
