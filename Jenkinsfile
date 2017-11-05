@@ -113,7 +113,8 @@ if (apply) {
           }
           echo "Provisioning with ansible"
           retry(3) {
-            sh "anw ansible-playbook -i environments/test site.yml || sleep 20"
+            sh "anw ansible-playbook -i environments/test site.yml"
+            sh "sleep 20"
           }
 }}}}}
 
@@ -148,7 +149,8 @@ if (apply) {
           }
           echo "Provisioning with ansible"
           retry(3) {
-            sh "anw ansible-playbook -i environments/prod site.yml || sleep 20"
+            sh "anw ansible-playbook -i environments/prod site.yml"
+            sh "sleep 20"
           }
         }
       }
