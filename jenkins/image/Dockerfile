@@ -30,3 +30,4 @@ COPY myplugins.sh /usr/local/bin/
 USER jenkins
 
 RUN bash -x /usr/local/bin/myplugins.sh
+RUN mkdir ~/.ssh && chmod 700 ~/.ssh
