@@ -1,4 +1,4 @@
-@Library('github.com/cloudowski/cloudowski-pipeline-library@0.1') _
+@Library('github.com/cloudowski/cloudowski-pipeline-library@0.1.1') _
 
 def exitCode = -1
 def apply = false
@@ -11,7 +11,7 @@ def envs = ['test', 'prod']
     checkout scm
 
     // version with timestamp
-    env.CODE_VERSION = get_timestamp_version()
+    env.CODE_VERSION = getTimestamp()
     currentBuild.displayName = "${env.CODE_VERSION}"
 
 
@@ -134,10 +134,4 @@ if (apply) {
         }
       }
     }
-}
-
-def get_timestamp_version() {
-  TimeZone.setDefault(TimeZone.getTimeZone('UTC'))
-  def now = new Date()
-  return now.format("yyyyMMddHHmmss")
 }
