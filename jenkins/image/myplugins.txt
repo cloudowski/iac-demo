@@ -1,7 +1,7 @@
 ant 
 aws-credentials
 ansicolor
-blueocean:1.2.3
+blueocean
 build-pipeline-plugin 
 build-timeout 
 cloudbees-folder 
