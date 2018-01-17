@@ -1,24 +1,17 @@
-def pullRequest = false
+@Library('github.com/cloudowski/cloudowski-pipeline-library@0.1') _
+
 def exitCode = -1
 def apply = false
-
 def envs = ['test', 'prod']
 
 
-ansiColor('xterm') {
   node {
     // Set github status that the images could be built successfully
     step([$class: 'GitHubSetCommitStatusBuilder'])
     checkout scm
-    // we don't release or ask for user input on pull requests
-    pullRequest = env.BRANCH_NAME != 'master'
 
     // version with timestamp
     env.CODE_VERSION = get_timestamp_version()
-    // set terraform variables
-    env.TF_INPUT = 0
-    env.TF_IN_AUTOMATION = 1
-
     currentBuild.displayName = "${env.CODE_VERSION}"
 
 
@@ -28,15 +21,12 @@ ansiColor('xterm') {
       // sh "./test/mid-level-tests.sh"
       sh "echo ansible-lint"
 
-      // downloadTerraform()
       env.PATH = "${env.PATH}:${env.WORKSPACE}:${env.WORKSPACE}/utils"
       withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
         dir('tf/') {
-          sh """
-            tfw init
-            tfw get -update=true
-            """
-          sh "tfw validate"
+          terraform.init()
+          terraform.exec('validate')
+
           echo "Putting code_version into terrafom config (code_version.auto.tfvars)"
           sh "echo 'code_version = ${env.CODE_VERSION}' > code_version.auto.tfvars"
 
@@ -50,20 +40,17 @@ ansiColor('xterm') {
     }
 
     stage('build-and-publish') {
-
       for (env in envs) {
-
-
-
         withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
           dir('tf/') {
-            tf_set_workspace("${env}")
-            sh """
-              set +e; tfw plan -out=tf.plan -var-file=../environments/${env}/.terraform.tfvars -detailed-exitcode; echo \$? > status
-            """
-            exitCode = readFile('status').trim()
+            terraform.set_workspace("${env}")
+            // sh """
+            //   set +e; tfw plan -out=tf.plan -var-file=../environments/${env}/.terraform.tfvars -detailed-exitcode; echo \$? > status
+            // """
+            exitCode = terraform.exec("plan -out=tf.plan -var-file=../environments/${env}/.terraform.tfvars -detailed-exitcode")
 
             echo "[${env}] Terraform Plan Exit Code: ${exitCode}"
+
             if (exitCode == "0" || exitCode == "2") {
                  currentBuild.result = 'SUCCESS'
                  stash includes: 'tf.plan, *.auto.tfvars .terraform', name: "${env}-plan"
@@ -71,17 +58,12 @@ ansiColor('xterm') {
             if (exitCode == "1") {
                  currentBuild.result = 'FAILURE'
             }
-            sh "tfw show tf.plan"
+            terraform.exec("show tf.plan")
           }
         }
       }
     }
   }
-}
-// pull requests only runs a plan
-//if(pullRequest){
-//  return
-//}
 
 // Do not allocate a node as this is a blocking request and should be run on light weight executor
 def userInputEnv = null
@@ -98,7 +80,6 @@ if (exitCode == "2") {
 }}}
 
 if (apply) {
-  ansiColor('xterm') {
     node {
 
       stage('deploy-to-test'){
@@ -107,16 +88,17 @@ if (apply) {
         env.PATH = "${env.PATH}:${env.WORKSPACE}"
         withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
           dir('tf/') {
-            tf_set_workspace('test')
+            terraform.set_workspace('test')
             unstash name: 'test-plan'
-            sh "tfw apply tf.plan"
+            terraform.exec('apply tf.plan')
           }
+
           echo "Provisioning with ansible"
           retry(3) {
             sh "anw ansible-playbook -i environments/test site.yml"
             sh "sleep 20"
           }
-}}}}}
+}}}}
 
 
 // changes to infra are needed
@@ -133,19 +115,16 @@ if (exitCode == "2") {
 }
 
 if (apply) {
-  ansiColor('xterm') {
     node {
-
       stage('deploy-to-prod'){
-        downloadTerraform()
         env.TF_VAR_name = 'iac-demo-prod'
-        tf_set_workspace('prod')
+        terraform.set_workspace('prod')
         env.PATH = "${env.PATH}:${env.WORKSPACE}"
         withCredentials([usernamePassword(credentialsId: 'aws-keys', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
           dir('tf/') {
             unstash name: 'prod-plan'
-            tf_set_workspace('prod')
-            sh "tfw apply tf.plan"
+            terraform.set_workspace('prod')
+            terraform.exec('apply tf.plan')
           }
           echo "Provisioning with ansible"
           retry(3) {
@@ -155,27 +134,6 @@ if (apply) {
         }
       }
     }
-  }
-}
-
-
-def downloadTerraform(){
-
-  if (!fileExists('terraform')) {
-    sh "curl -o  terraform_0.10.7_linux_amd64.zip https://releases.hashicorp.com/terraform/0.10.7/terraform_0.10.7_linux_amd64.zip && unzip -o terraform_0.10.7_linux_amd64.zip && chmod 777 terraform"
-  } else {
-    println("terraform already downloaded")
-  }
-}
-
-def prepareTerraform() {
-  downloadTerraform()
-}
-
-def tf_set_workspace(ws) {
-  sh "tfw workspace select ${ws} 2> /dev/null || tfw workspace new ${ws}"
-  sh "tfw workspace select ${ws}"
-
 }
 
 def get_timestamp_version() {

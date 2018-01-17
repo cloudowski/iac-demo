@@ -23,20 +23,23 @@ module "vpc" {
 
 data "aws_ami" "ubuntu" {
   most_recent = true
-  owners = ["099720109477"]
+  owners      = ["099720109477"]
 
   filter {
     name   = "architecture"
     values = ["x86_64"]
   }
+
   filter {
     name   = "root-device-type"
     values = ["ebs"]
   }
+
   filter {
     name   = "virtualization-type"
     values = ["hvm"]
   }
+
   filter {
     name   = "name"
     values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
@@ -59,12 +62,11 @@ resource "aws_security_group" "iac-demo-ssh" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [ "${var.ssh_access_cidr}" ]
+    cidr_blocks = ["${var.ssh_access_cidr}"]
   }
 
-
   tags {
-    Env     = "${var.env}"
+    Env = "${var.env}"
   }
 }
 
@@ -80,6 +82,7 @@ resource "aws_security_group" "iac-demo-egress" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   egress {
     from_port   = 443
     to_port     = 443
@@ -87,20 +90,20 @@ resource "aws_security_group" "iac-demo-egress" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-
   tags {
-    Env     = "${var.env}"
+    Env = "${var.env}"
   }
 }
 
 data "template_file" "user-data" {
   template = "${file("${path.module}/files/user-data.sh")}"
 }
+
 resource "aws_instance" "myapp" {
-  ami                  = "${data.aws_ami.ubuntu.id}"
-  instance_type        = "${var.amisize}"
-  subnet_id            = "${element(module.vpc.public-subnet-ids, 0)}"
-  user_data            = "${data.template_file.user-data.rendered}"
+  ami           = "${data.aws_ami.ubuntu.id}"
+  instance_type = "${var.amisize}"
+  subnet_id     = "${element(module.vpc.public-subnet-ids, 0)}"
+  user_data     = "${data.template_file.user-data.rendered}"
 
   root_block_device {
     volume_size = 10
@@ -108,15 +111,15 @@ resource "aws_instance" "myapp" {
 
   vpc_security_group_ids = [
     "${aws_security_group.iac-demo-ssh.id}",
-    "${aws_security_group.iac-demo-egress.id}"
+    "${aws_security_group.iac-demo-egress.id}",
   ]
 
   key_name = "${aws_key_pair.keypair.key_name}"
 
   tags {
-    Name    = "myapp-${var.env}"
-    Env     = "${var.env}"
-    Role    = "app"
-    CodeVersion    = "${var.code_version}"
+    Name        = "myapp-${var.env}"
+    Env         = "${var.env}"
+    Role        = "app"
+    CodeVersion = "${var.code_version}"
   }
 }
