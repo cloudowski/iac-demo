@@ -27,7 +27,7 @@ def envs = ['test', 'prod']
           terraform.init()
           terraform.exec('validate')
 
-          echo "Putting code_version into terrafom config (code_version.auto.tfvars)"
+          echo "Putting code_version into terraform config (code_version.auto.tfvars)"
           sh "echo 'code_version = ${env.CODE_VERSION}' > code_version.auto.tfvars"
 
         }
@@ -52,7 +52,7 @@ def envs = ['test', 'prod']
             echo "[${env}] Terraform Plan Exit Code: ${exitCode}"
 
             if (exitCode == "0" || exitCode == "2") {
-                 currentBuild.result = 'SUCCESS'
+                 //currentBuild.result = 'SUCCESS'
                  stash includes: 'tf.plan, *.auto.tfvars .terraform', name: "${env}-plan"
             }
             if (exitCode == "1") {
