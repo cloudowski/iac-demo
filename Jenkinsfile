@@ -1,4 +1,4 @@
-@Library('github.com/cloudowski/cloudowski-pipeline-library@0.1.1') _
+@Library('github.com/cloudowski/cloudowski-pipeline-library') _
 
 def exitCode = -1
 def apply = false
